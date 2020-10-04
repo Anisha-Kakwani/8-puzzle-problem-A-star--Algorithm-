@@ -45,5 +45,88 @@ class Node:
                 if self.mat[i][j] == a:
                     return i,j
 
+class Grid:
+    size =[]
+    explored_list = []
+    frontier = []
 
+    def read_input(self):
+        print("(Use 0 for blank tile, Insert spaces after each number & press enter after each row)")
+        matrix = [[int(y) for y in input().strip().split(" ")] for x in range(3)]
+        return matrix
+    
+    def evaluation_fn(self,current,goal):
+
+        return self.manhattan_distance_heuristic(current.mat,goal) + current.gn 
+        # return self.misplaced_tiles_heuristic(current.mat,goal) + current.gn 
+    
+    def misplaced_tiles_heuristic(self,current,goal):
+
+        count=0
+        for x in range(3):
+            for y in range(3):
+                if current[x][y] == 0: continue
+
+                if current[x][y] != goal[x][y]:
+                    count = count + 1
+
+        return count
+
+    def manhattan_distance_heuristic(self,current,goal):
+
+        current_tile_positions = self.find_tile_positions(current)
+        goal_tile_positions = self.find_tile_positions(goal)
+
+        sum =0
+        for x in range(8):
+            x = x + 1
+            sum = sum + abs(goal_tile_positions[x][0] - current_tile_positions[x][0]) + abs(goal_tile_positions[x][1] - current_tile_positions[x][1])
+
+        return sum
+    
+    def find_tile_positions(self,state):
+
+        tile_positions ={}
+        for i in range(3):
+            for j in range(3):
+                tile_positions.update({state[i][j]:[i,j]})
         
+        return tile_positions
+
+    def search(self):
+        print("Enter the start state")
+        start_state = self.read_input()
+        print("Enter the goal state")
+        goal_state = self.read_input()
+
+        start_state = Node(start_state,0,0)
+        start_state.fn = self.evaluation_fn(start_state,goal_state)
+
+        self.frontier.append(start_state)
+
+        while True:
+            current = self.frontier[0]
+
+            if self.manhattan_distance_heuristic(current.mat,goal_state)==0:
+                print("Goal found")
+                print("No of Nodes Generated", len(self.frontier))
+                print("No of Nodes Expanded", len(self.explored_list))
+                break
+                # Goal is found 
+            
+            # child_nodes = current.successor()
+
+            for child in current.successor():
+                child.fn = self.evaluation_fn(child,goal_state)
+                self.frontier.append(child)
+
+            self.explored_list.append(current)
+
+            self.frontier.sort(key=lambda  x:x.fn,reverse=False)
+            
+
+if __name__ == "__main__":
+
+    grid = Grid()
+    grid.search()
+    
