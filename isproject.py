@@ -10,7 +10,7 @@ class Node:
         successors=[]
         ''' get the loction of the blank tile (x,y) ,'_' means blank, m is our grid data of current node '''
         
-        x,y = self.blank_tile(self.mat,'0')
+        x,y = self.blank_tile(self.mat,0)
 
         ''' generate 4 new locations for the blank tiles and stored then in new_loc[] array'''
         new_loc= [[x-1,y],[x+1,y],[x,y-1],[x,y+1]]
@@ -49,6 +49,7 @@ class Grid:
     size =[]
     explored_list = []
     frontier = []
+    no_of_nodes_generated = 0
 
     def read_input(self):
         print("(Use 0 for blank tile, Insert spaces after each number & press enter after each row)")
@@ -106,6 +107,7 @@ class Grid:
 
         while True:
             current = self.frontier[0]
+            print(current.mat)
 
             if self.manhattan_distance_heuristic(current.mat,goal_state)==0:
                 print("Goal found")
@@ -114,8 +116,8 @@ class Grid:
                 break
                 # Goal is found 
             
-            # child_nodes = current.successor()
-
+            self.frontier.remove(current)
+            self.no_of_nodes_generated +=1
             for child in current.successor():
                 child.fn = self.evaluation_fn(child,goal_state)
                 self.frontier.append(child)
@@ -129,4 +131,4 @@ if __name__ == "__main__":
 
     grid = Grid()
     grid.search()
-    
+
