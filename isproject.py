@@ -97,15 +97,21 @@ class Grid:
     def search(self):
         print("Enter the start state")
         start_state = self.read_input()
+        print(self.puzzle_has_solution(start_state))
         print("Enter the goal state")
         goal_state = self.read_input()
 
+        # print("Which heuristic you want to use ? Enter 1 for Manhattan-Distance-Heuristic 2 for Misplaced-Tiles-Heuristic")
+        # heuristic = input()
+        # if heuristic not in ['1','2']:
+        #     return print("Invalid Input")
+        
         start_state = Node(start_state,0,0)
         start_state.fn = self.evaluation_fn(start_state,goal_state)
 
         self.frontier.append(start_state)
 
-        while True:
+        while len(self.frontier)!=0:
             current = self.frontier[0]
             print(current.mat)
 
@@ -114,7 +120,9 @@ class Grid:
                 print("No of Nodes Generated", len(self.frontier))
                 print("No of Nodes Expanded", len(self.explored_list))
                 break
-                # Goal is found 
+            
+            if current in self.explored_list:
+                continue
             
             self.frontier.remove(current)
             self.no_of_nodes_generated +=1
@@ -125,6 +133,20 @@ class Grid:
             self.explored_list.append(current)
 
             self.frontier.sort(key=lambda  x:x.fn,reverse=False)
+        
+        if(len(self.frontier==0)): print("No Solution")
+    
+    def puzzle_has_solution(self, start_state):
+            t_list = []
+            for number in start_state:
+                if number != 0:
+                    t_list.append(number)
+            inversions = 0
+            for i in range(0, 3):
+                for j in range(i, 3):
+                    if t_list[i] > t_list[j]:
+                        inversions += 1
+            return bool(inversions % 2 == 0)
             
 
 if __name__ == "__main__":
