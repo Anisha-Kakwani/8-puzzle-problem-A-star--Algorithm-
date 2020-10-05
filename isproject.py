@@ -10,7 +10,7 @@ class Node:
         successors=[]
         ''' get the loction of the blank tile (x,y) ,'_' means blank, m is our grid data of current node '''
         
-        x,y = self.blank_tile(self.mat,'0')
+        x,y = self.blank_tile(self.mat,0)
 
         ''' generate 4 new locations for the blank tiles and stored then in new_loc[] array'''
         new_loc= [[x-1,y],[x+1,y],[x,y-1],[x,y+1]]
@@ -49,6 +49,7 @@ class Grid:
     size =[]
     explored_list = []
     frontier = []
+    no_of_nodes_generated = 0
 
     def read_input(self):
         print("(Use 0 for blank tile, Insert spaces after each number & press enter after each row)")
@@ -57,8 +58,8 @@ class Grid:
     
     def evaluation_fn(self,current,goal):
 
-        return self.manhattan_distance_heuristic(current.mat,goal) + current.gn 
-        # return self.misplaced_tiles_heuristic(current.mat,goal) + current.gn 
+        #return self.manhattan_distance_heuristic(current.mat,goal) + current.gn 
+        return self.misplaced_tiles_heuristic(current.mat,goal) + current.gn 
     
     def misplaced_tiles_heuristic(self,current,goal):
 
@@ -98,35 +99,52 @@ class Grid:
         start_state = self.read_input()
         print("Enter the goal state")
         goal_state = self.read_input()
+        slovable = self.puzzle_has_solution(start_state)
+        if slovable == False:
+            print("No solution")
+        else:    
+            start_state = Node(start_state,0,0)
+            start_state.fn = self.evaluation_fn(start_state,goal_state)
 
-        start_state = Node(start_state,0,0)
-        start_state.fn = self.evaluation_fn(start_state,goal_state)
+            self.frontier.append(start_state)
 
-        self.frontier.append(start_state)
+            while True:
+                current = self.frontier[0]
+                print(current.mat)
 
-        while True:
-            current = self.frontier[0]
+                if self.misplaced_tiles_heuristic(current.mat,goal_state)==0:
+                    print("Goal found")
+                    print("No of Nodes Generated", len(self.frontier))
+                    print("No of Nodes Expanded", len(self.explored_list))
+                    break
+                    # Goal is found 
+                
+                self.frontier.remove(current)
+                self.no_of_nodes_generated +=1
+                for child in current.successor():
+                    child.fn = self.evaluation_fn(child,goal_state)
+                    self.frontier.append(child)
 
-            if self.manhattan_distance_heuristic(current.mat,goal_state)==0:
-                print("Goal found")
-                print("No of Nodes Generated", len(self.frontier))
-                print("No of Nodes Expanded", len(self.explored_list))
-                break
-                # Goal is found 
-            
-            # child_nodes = current.successor()
+                self.explored_list.append(current)
 
-            for child in current.successor():
-                child.fn = self.evaluation_fn(child,goal_state)
-                self.frontier.append(child)
+                self.frontier.sort(key=lambda  x:x.fn,reverse=False)
+    def puzzle_has_solution(self, start_state):
+            t_list = []
+            for number in start_state:
+                for number2 in number:
+                    if number2 != 0:
+                        t_list.append(number2)
+            print (t_list)
+            inversions = 0
+            for i in range(0, 8):
+                for j in range(i, 8):
+                    if t_list[i] > t_list[j]:
+                        inversions += 1
+            return bool(inversions % 2 == 0)
 
-            self.explored_list.append(current)
-
-            self.frontier.sort(key=lambda  x:x.fn,reverse=False)
-            
+           
 
 if __name__ == "__main__":
 
     grid = Grid()
     grid.search()
-    
