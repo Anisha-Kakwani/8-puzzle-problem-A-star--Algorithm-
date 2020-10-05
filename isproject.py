@@ -1,14 +1,16 @@
 class Node: 
-    ''' node configration with its data ( matrix "grid puzzel" , g(n) = 0  , f(n)= 0 )'''
-    def __init__(self,mat,gn,fn):
+    ''' node configration with its data ( matrix "grid puzzel" , g(n) = 0  , f(n)= 0 , parent position (x,y) )'''
+    def __init__(self,mat,gn,fn,parent_x,parent_y):
          self.mat = mat
          self.gn = gn 
          self.fn = fn 
+         self.parent_x =parent_x
+         self.parent_y = parent_x
 
     def successor(self):
         ''' this function is responsible for generating the successors of the current node'''
         successors=[]
-        ''' get the loction of the blank tile (x,y) ,'_' means blank, m is our grid data of current node '''
+        ''' get the loction of the blank tile (x,y) ,'0' means blank, m is our grid data of current node '''
         
         x,y = self.blank_tile(self.mat,0)
 
@@ -17,28 +19,31 @@ class Node:
         for i in new_loc:
            new_succsessor= self.swapping(self.mat,i[0],i[1],x,y)
            if new_succsessor != 0:
-               new_node = Node(new_succsessor,self.gn+1,0)
+               new_node = Node(new_succsessor,self.gn+1,0,x,y)
                successors.append(new_node)
         return successors
         
 
-    '''  get a copy of current node to swapping it with new blank tile loction '''
+    '''  this function is responsible of getting a copy of current node to swapping it with new blank tile location
+      and prevent the crearting any explored node'''
     def swapping(self,current_mat,x1,y1,x,y):
         child_m =[]
-        if x1 >= 0 and x1 < len(self.mat) and y1 >= 0 and y1 < len(self.mat):
+        if x1 >= 0 and x1 < len(self.mat) and y1 >= 0 and y1 < len(self.mat) and x1 != self.parent_x and y1 !=self.parent_y :
+            '''copy the current matrix '''
             for i in current_mat:
                 t =[]
                 for j in i:
                     t.append(j)
                 child_m.append(t)
-            '''  end of copying process '''        
+            '''  end of copying process ''' 
+            ''' swaping process'''       
             temp= child_m[x1][y1]
             child_m[x1][y1] =child_m[x][y]
             child_m[x][y] = temp
             return child_m
         else:
             return 0
-
+    ''' This function is responsible of fining the blank tile location'''
     def blank_tile(self,m,a):
         for i in range(0,len(self.mat)):
             for j in range(0,len(self.mat)):
@@ -99,50 +104,41 @@ class Grid:
         start_state = self.read_input()
         print("Enter the goal state")
         goal_state = self.read_input()
-        slovable = self.puzzle_has_solution(start_state)
-        if slovable == False:
-            print("No solution")
-        else:    
-            start_state = Node(start_state,0,0)
-            start_state.fn = self.evaluation_fn(start_state,goal_state)
+    
+        start_state = Node(start_state,0,0,-1,-1)
+        start_state.fn = self.evaluation_fn(start_state,goal_state)
 
-            self.frontier.append(start_state)
+        self.frontier.append(start_state)
 
-            while True:
-                current = self.frontier[0]
-                print(current.mat)
-
-                if self.misplaced_tiles_heuristic(current.mat,goal_state)==0:
-                    print("Goal found")
-                    print("No of Nodes Generated", len(self.frontier))
-                    print("No of Nodes Expanded", len(self.explored_list))
-                    break
-                    # Goal is found 
+        while len(self.frontier)!=0:
+            current = self.frontier[0]
+            print(current.mat)
                 
-                self.frontier.remove(current)
-                self.no_of_nodes_generated +=1
-                for child in current.successor():
-                    child.fn = self.evaluation_fn(child,goal_state)
-                    self.frontier.append(child)
 
-                self.explored_list.append(current)
+            if self.misplaced_tiles_heuristic(current.mat,goal_state)==0:
+                print("Goal found")
+                print("No of Nodes Generated", len(self.frontier))
+                print("No of Nodes Expanded", len(self.explored_list))
+                break
+                 # Goal is found 
+                
 
-                self.frontier.sort(key=lambda  x:x.fn,reverse=False)
-    def puzzle_has_solution(self, start_state):
-            t_list = []
-            for number in start_state:
-                for number2 in number:
-                    if number2 != 0:
-                        t_list.append(number2)
-            print (t_list)
-            inversions = 0
-            for i in range(0, 8):
-                for j in range(i, 8):
-                    if t_list[i] > t_list[j]:
-                        inversions += 1
-            return bool(inversions % 2 == 0)
+            self.no_of_nodes_generated +=1
+                
+
+            for child in current.successor():
+                child.fn = self.evaluation_fn(child,goal_state)
+                self.frontier.append(child)
+
+            self.explored_list.append(current)
+            self.frontier.remove(current)
+            #del self.frontier[0]
+            
+            self.frontier.sort(key=lambda  x:x.fn,reverse=False)
+        if(len(self.frontier) == 0): print("No Solution")
 
            
+ 
 
 if __name__ == "__main__":
 
